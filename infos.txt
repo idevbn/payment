@@ -1,0 +1,2 @@
+Para esta versão do Spring Boot não é necessário anotar a classe PaymentApplication
+com @@EnableEurekaClient.
