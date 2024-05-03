@@ -2,6 +2,7 @@ package com.ead.payment.consumers;
 
 import com.ead.payment.dtos.UserEventDTO;
 import com.ead.payment.enums.ActionType;
+import com.ead.payment.enums.PaymentStatus;
 import com.ead.payment.models.UserModel;
 import com.ead.payment.services.UserService;
 import org.springframework.amqp.core.ExchangeTypes;
@@ -36,6 +37,7 @@ public class UserConsumer {
 
         switch (ActionType.valueOf(userEventDTO.getActionType())) {
             case CREATE:
+                userModel.setPaymentStatus(PaymentStatus.NOTSTARTED);
                 this.userService.save(userModel);
                 break;
 
