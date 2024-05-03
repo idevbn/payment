@@ -26,7 +26,6 @@ public class CreditCardModel implements Serializable {
     @Column(nullable = false, length = 150)
     private String cardHolderFullName;
 
-
     @Column(nullable = false, length = 20)
     private String cardHolderCpf;
 
@@ -39,7 +38,7 @@ public class CreditCardModel implements Serializable {
     @Column(nullable = false, length = 3)
     private String cvvCode;
 
-    @OneToMany
+    @OneToOne
     @JoinColumn(name = "user_id", unique = true, nullable = false)
     private UserModel user;
 
