@@ -1,6 +1,6 @@
 package com.ead.payment.models;
 
-import com.ead.payment.enums.PaymentStatus;
+import com.ead.payment.enums.PaymentControl;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -29,7 +29,7 @@ public class PaymentModel implements Serializable {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private PaymentStatus paymentStatus;
+    private PaymentControl paymentControl;
 
     @Column(nullable = false)
     private LocalDateTime paymentRequestDate;
