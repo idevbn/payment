@@ -90,7 +90,7 @@ public class PaymentController {
             @PathVariable(value = "paymentId") final UUID paymentId
     ) {
         final Optional<PaymentModel> paymentModelOptional = this.paymentService
-                .findPaymenyByUser(userId, paymentId);
+                .findPaymentByUser(userId, paymentId);
 
         if (paymentModelOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Payment nof found for this user.");
