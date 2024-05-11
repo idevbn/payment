@@ -1,6 +1,8 @@
 package com.ead.payment.controllers;
 
 import com.ead.payment.dtos.PaymentRequestDTO;
+import com.ead.payment.enums.PaymentControl;
+import com.ead.payment.models.PaymentModel;
 import com.ead.payment.models.UserModel;
 import com.ead.payment.services.PaymentService;
 import com.ead.payment.services.UserService;
@@ -10,6 +12,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -38,9 +42,26 @@ public class PaymentController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
         }
 
-        this.paymentService.requestPaymentStatus(paymentRequestDTO, userModelOptional.get());
+        final Optional<PaymentModel> paymentModelOptional = this.paymentService
+                .findLastPaymentByUser(userModelOptional.get());
 
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body("");
+        if (paymentModelOptional.isPresent()) {
+
+            if (paymentModelOptional.get().getPaymentControl().equals(PaymentControl.REQUESTED)) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Payment already requested.");
+            }
+
+            if (paymentModelOptional.get().getPaymentControl().equals(PaymentControl.EFFECTED) &&
+                    paymentModelOptional.get().getPaymentExpirationDate()
+                            .isAfter(LocalDateTime.now(ZoneId.of("UTC")))) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Payment already made.");
+            }
+        }
+
+        final PaymentModel paymentModel = this.paymentService
+                .requestPaymentStatus(paymentRequestDTO, userModelOptional.get());
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(paymentModel);
     }
 
 }
