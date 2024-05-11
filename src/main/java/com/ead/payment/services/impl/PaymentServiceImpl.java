@@ -9,6 +9,9 @@ import com.ead.payment.repositories.CreditCardRepository;
 import com.ead.payment.repositories.PaymentRepository;
 import com.ead.payment.services.PaymentService;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -67,6 +70,14 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override public Optional<PaymentModel> findLastPaymentByUser(final UserModel userModel) {
         return this.paymentRepository.findTopByUserOrderByPaymentRequestDateDesc(userModel);
+    }
+
+    @Override
+    public Page<PaymentModel> findAllByUser(
+            final Specification<PaymentModel> spec,
+            final Pageable pageable
+    ) {
+        return this.paymentRepository.findAll(spec, pageable);
     }
 
 }
