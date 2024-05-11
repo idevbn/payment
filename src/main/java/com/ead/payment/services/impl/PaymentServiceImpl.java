@@ -65,4 +65,8 @@ public class PaymentServiceImpl implements PaymentService {
         return paymentModel;
     }
 
+    @Override public Optional<PaymentModel> findLastPaymentByUser(final UserModel userModel) {
+        return this.paymentRepository.findTopByUserOrderByPaymentRequestDateDesc(userModel);
+    }
+
 }
