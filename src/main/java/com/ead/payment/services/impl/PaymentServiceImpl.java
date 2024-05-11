@@ -18,6 +18,7 @@ import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class PaymentServiceImpl implements PaymentService {
@@ -78,6 +79,11 @@ public class PaymentServiceImpl implements PaymentService {
             final Pageable pageable
     ) {
         return this.paymentRepository.findAll(spec, pageable);
+    }
+
+    @Override
+    public Optional<PaymentModel> findPaymenyByUser(final UUID userId, final UUID paymentId) {
+        return this.paymentRepository.findPaymentByUser(userId, paymentId);
     }
 
 }
