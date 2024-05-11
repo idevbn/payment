@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Optional;
 
 @Service
 public class PaymentServiceImpl implements PaymentService {
@@ -33,7 +34,13 @@ public class PaymentServiceImpl implements PaymentService {
             final PaymentRequestDTO paymentRequestDTO,
             final UserModel userModel
     ) {
-        final CreditCardModel creditCardModel = new CreditCardModel();
+        CreditCardModel creditCardModel = new CreditCardModel();
+        final Optional<CreditCardModel> creditCardModelOptional = this.creditCardRepository
+                .findByUser(userModel);
+
+        if (creditCardModelOptional.isPresent()) {
+            creditCardModel = creditCardModelOptional.get();
+        }
 
         BeanUtils.copyProperties(paymentRequestDTO, creditCardModel);
         creditCardModel.setUser(userModel);
