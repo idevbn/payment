@@ -6,6 +6,7 @@ import com.ead.payment.services.UserService;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -26,6 +27,11 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void delete(final UUID userId) {
         this.userRepository.deleteById(userId);
+    }
+
+    @Override
+    public Optional<UserModel> findById(final UUID userId) {
+        return this.userRepository.findById(userId);
     }
 
 }
