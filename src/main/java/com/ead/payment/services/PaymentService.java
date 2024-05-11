@@ -21,6 +21,6 @@ public interface PaymentService {
 
     Page<PaymentModel> findAllByUser(final Specification<PaymentModel> spec, final Pageable pageable);
 
-    Optional<PaymentModel> findPaymenyByUser(final UUID userId, final UUID paymentId);
+    Optional<PaymentModel> findPaymentByUser(final UUID userId, final UUID paymentId);
 
 }

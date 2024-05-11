@@ -1,13 +1,16 @@
 package com.ead.payment.services.impl;
 
+import com.ead.payment.dtos.PaymentCommandDTO;
 import com.ead.payment.dtos.PaymentRequestDTO;
 import com.ead.payment.enums.PaymentControl;
 import com.ead.payment.models.CreditCardModel;
 import com.ead.payment.models.PaymentModel;
 import com.ead.payment.models.UserModel;
+import com.ead.payment.publishers.PaymentCommandPublisher;
 import com.ead.payment.repositories.CreditCardRepository;
 import com.ead.payment.repositories.PaymentRepository;
 import com.ead.payment.services.PaymentService;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,16 +23,20 @@ import java.time.ZoneId;
 import java.util.Optional;
 import java.util.UUID;
 
+@Log4j2
 @Service
 public class PaymentServiceImpl implements PaymentService {
 
     private final CreditCardRepository creditCardRepository;
     private final PaymentRepository paymentRepository;
+    private final PaymentCommandPublisher paymentCommandPublisher;
 
     public PaymentServiceImpl(final CreditCardRepository creditCardRepository,
-                              final PaymentRepository paymentRepository) {
+                              final PaymentRepository paymentRepository,
+                              final PaymentCommandPublisher paymentCommandPublisher) {
         this.creditCardRepository = creditCardRepository;
         this.paymentRepository = paymentRepository;
+        this.paymentCommandPublisher = paymentCommandPublisher;
     }
 
     @Override
@@ -65,11 +72,22 @@ public class PaymentServiceImpl implements PaymentService {
 
         this.paymentRepository.save(paymentModel);
 
-        // send request to queue
+        try {
+            final PaymentCommandDTO paymentCommandDTO = new PaymentCommandDTO();
+            paymentCommandDTO.setUserId(userModel.getUserId());
+            paymentCommandDTO.setPaymentId(paymentModel.getPaymentId());
+            paymentCommandDTO.setCardId(creditCardModel.getCardId());
+
+            this.paymentCommandPublisher.publishPaymentCommand(paymentCommandDTO);
+        } catch (final Exception e) {
+            log.warn("Error sending payment command!");
+        }
+
         return paymentModel;
     }
 
-    @Override public Optional<PaymentModel> findLastPaymentByUser(final UserModel userModel) {
+    @Override
+    public Optional<PaymentModel> findLastPaymentByUser(final UserModel userModel) {
         return this.paymentRepository.findTopByUserOrderByPaymentRequestDateDesc(userModel);
     }
 
@@ -82,7 +100,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public Optional<PaymentModel> findPaymenyByUser(final UUID userId, final UUID paymentId) {
+    public Optional<PaymentModel> findPaymentByUser(final UUID userId, final UUID paymentId) {
         return this.paymentRepository.findPaymentByUser(userId, paymentId);
     }
 
