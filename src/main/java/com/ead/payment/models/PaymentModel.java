@@ -25,7 +25,7 @@ public class PaymentModel implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID userId;
+    private UUID paymentId;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
