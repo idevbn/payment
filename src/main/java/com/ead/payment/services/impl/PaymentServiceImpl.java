@@ -9,7 +9,9 @@ import com.ead.payment.models.UserModel;
 import com.ead.payment.publishers.PaymentCommandPublisher;
 import com.ead.payment.repositories.CreditCardRepository;
 import com.ead.payment.repositories.PaymentRepository;
+import com.ead.payment.repositories.UserRepository;
 import com.ead.payment.services.PaymentService;
+import com.ead.payment.services.PaymentStripeService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
@@ -30,13 +32,19 @@ public class PaymentServiceImpl implements PaymentService {
     private final CreditCardRepository creditCardRepository;
     private final PaymentRepository paymentRepository;
     private final PaymentCommandPublisher paymentCommandPublisher;
+    private final UserRepository userRepository;
+    private final PaymentStripeService paymentStripeService;
 
     public PaymentServiceImpl(final CreditCardRepository creditCardRepository,
                               final PaymentRepository paymentRepository,
-                              final PaymentCommandPublisher paymentCommandPublisher) {
+                              final PaymentCommandPublisher paymentCommandPublisher,
+                              final UserRepository userRepository,
+                              final PaymentStripeService paymentStripeService) {
         this.creditCardRepository = creditCardRepository;
         this.paymentRepository = paymentRepository;
         this.paymentCommandPublisher = paymentCommandPublisher;
+        this.userRepository = userRepository;
+        this.paymentStripeService = paymentStripeService;
     }
 
     @Override
@@ -102,6 +110,22 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public Optional<PaymentModel> findPaymentByUser(final UUID userId, final UUID paymentId) {
         return this.paymentRepository.findPaymentByUser(userId, paymentId);
+    }
+
+    @Override
+    @Transactional
+    public void makePayment(final PaymentCommandDTO paymentCommandDTO) {
+        var paymentModel = this.paymentRepository
+                .findById(paymentCommandDTO.getPaymentId()).get();
+
+        var userModel = this.userRepository
+                .findById(paymentCommandDTO.getUserId()).get();
+
+        var creditCardModel = this.creditCardRepository
+                .findById(paymentCommandDTO.getCardId()).get();
+
+        paymentModel = this.paymentStripeService
+                .processStripePayment(paymentModel, creditCardModel);
     }
 
 }
