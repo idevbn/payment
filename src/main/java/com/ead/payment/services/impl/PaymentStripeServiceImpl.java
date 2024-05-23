@@ -1,15 +1,19 @@
 package com.ead.payment.services.impl;
 
+import com.ead.payment.enums.PaymentControl;
 import com.ead.payment.models.CreditCardModel;
 import com.ead.payment.models.PaymentModel;
 import com.ead.payment.services.PaymentStripeService;
 import com.stripe.Stripe;
+import com.stripe.exception.CardException;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.PaymentMethod;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -58,11 +62,34 @@ public class PaymentStripeServiceImpl implements PaymentStripeService {
             final Map<String, Object> paramsPaymentConfirm = new HashMap<>();
             paramsPaymentConfirm.put("payment_method", paymentMethod.getId());
 
-            final PaymentIntent confirmPaymentIntent = paymentIntent.confirm(paramsPaymentConfirm);
-        } catch (final Exception ex) {
+            final PaymentIntent confirmPaymentIntent = paymentIntent.confirm();
 
+            if (confirmPaymentIntent.getStatus().equals("succeeded")) {
+                paymentModel.setPaymentControl(PaymentControl.EFFECTED);
+                paymentModel.setPaymentMessage("payment effected - paymentIntent: " + paymentIntentId);
+                paymentModel.setPaymentCompletionDate(LocalDateTime.now(ZoneId.of("UTC")));
+            } else {
+                paymentModel.setPaymentControl(PaymentControl.ERROR);
+                paymentModel.setPaymentMessage("payment error v1 - paymentIntent: " + paymentIntentId);
+            }
+
+        } catch (final CardException cardException) {
+            System.out.println("A payment error occurred: {}");
+            try {
+                paymentModel.setPaymentControl(PaymentControl.REFUSED);
+                final PaymentIntent paymentIntent = PaymentIntent.retrieve(paymentIntentId);
+                paymentModel.setPaymentMessage("payment refused v1 - paymentIntent: " + paymentIntentId +
+                        ", cause: " + paymentIntent.getLastPaymentError().getCode() +
+                        ", message: " + paymentIntent.getLastPaymentError().getMessage());
+            } catch (final Exception exception) {
+                paymentModel.setPaymentMessage("payment refused v2 - paymentIntent: " + paymentIntentId);
+                System.out.println("Another problem occurred, maybe unrelated to Stripe.");
+            }
+        } catch (final Exception exception) {
+            paymentModel.setPaymentControl(PaymentControl.ERROR);
+            paymentModel.setPaymentMessage("payment error v2 - paymentIntent: " + paymentIntentId);
+            System.out.println("Another problem occurred, maybe unrelated to Stripe.");
         }
-
         return paymentModel;
     }
 

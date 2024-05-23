@@ -3,6 +3,7 @@ package com.ead.payment.services.impl;
 import com.ead.payment.dtos.PaymentCommandDTO;
 import com.ead.payment.dtos.PaymentRequestDTO;
 import com.ead.payment.enums.PaymentControl;
+import com.ead.payment.enums.PaymentStatus;
 import com.ead.payment.models.CreditCardModel;
 import com.ead.payment.models.PaymentModel;
 import com.ead.payment.models.UserModel;
@@ -126,6 +127,21 @@ public class PaymentServiceImpl implements PaymentService {
 
         paymentModel = this.paymentStripeService
                 .processStripePayment(paymentModel, creditCardModel);
+
+        if (paymentModel.getPaymentControl().equals(PaymentControl.EFFECTED)) {
+            userModel.setPaymentStatus(PaymentStatus.PAYING);
+            userModel.setLastPaymentDate(LocalDateTime.now(ZoneId.of("UTC")));
+            userModel.setPaymentExpirationDate(LocalDateTime.now(ZoneId.of("UTC"))
+                    .plusDays(30));
+
+            if (userModel.getFirstPaymentDate() == null) {
+                userModel.setFirstPaymentDate(LocalDateTime.now(ZoneId.of("UTC")));
+            }
+        } else {
+            userModel.setPaymentStatus(PaymentStatus.DEBTOR);
+        }
+
+        this.userRepository.save(userModel);
     }
 
 }
