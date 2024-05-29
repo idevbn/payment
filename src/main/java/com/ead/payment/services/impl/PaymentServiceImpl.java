@@ -8,6 +8,7 @@ import com.ead.payment.models.CreditCardModel;
 import com.ead.payment.models.PaymentModel;
 import com.ead.payment.models.UserModel;
 import com.ead.payment.publishers.PaymentCommandPublisher;
+import com.ead.payment.publishers.PaymentEventPublisher;
 import com.ead.payment.repositories.CreditCardRepository;
 import com.ead.payment.repositories.PaymentRepository;
 import com.ead.payment.repositories.UserRepository;
@@ -35,17 +36,20 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentCommandPublisher paymentCommandPublisher;
     private final UserRepository userRepository;
     private final PaymentStripeService paymentStripeService;
+    private final PaymentEventPublisher paymentEventPublisher;
 
     public PaymentServiceImpl(final CreditCardRepository creditCardRepository,
                               final PaymentRepository paymentRepository,
                               final PaymentCommandPublisher paymentCommandPublisher,
                               final UserRepository userRepository,
-                              final PaymentStripeService paymentStripeService) {
+                              final PaymentStripeService paymentStripeService,
+                              final PaymentEventPublisher paymentEventPublisher) {
         this.creditCardRepository = creditCardRepository;
         this.paymentRepository = paymentRepository;
         this.paymentCommandPublisher = paymentCommandPublisher;
         this.userRepository = userRepository;
         this.paymentStripeService = paymentStripeService;
+        this.paymentEventPublisher = paymentEventPublisher;
     }
 
     @Override
@@ -142,6 +146,15 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         this.userRepository.save(userModel);
+
+        if (paymentModel.getPaymentControl().equals(PaymentControl.EFFECTED) ||
+            paymentModel.getPaymentControl().equals(PaymentControl.REFUSED)
+        ) {
+            this.paymentEventPublisher
+                    .publishPaymentEvent(paymentModel.convertToPaymentEventDTO());
+        } else if (paymentModel.getPaymentControl().equals(PaymentControl.ERROR)) {
+            System.out.println("F");
+        }
     }
 
 }
