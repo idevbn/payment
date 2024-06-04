@@ -20,8 +20,7 @@ public class UserEventDTO {
     private String imageUrl;
     private String actionType;
 
-    public UserModel convertToUserModel() {
-        final UserModel userModel = new UserModel();
+    public UserModel convertToUserModel(final UserModel userModel) {
         BeanUtils.copyProperties(this, userModel);
         return userModel;
     }
