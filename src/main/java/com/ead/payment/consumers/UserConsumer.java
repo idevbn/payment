@@ -33,20 +33,24 @@ public class UserConsumer {
             )
     )
     public void listenUserEvent(@Payload final UserEventDTO userEventDTO) {
-        final UserModel userModel = userEventDTO.convertToUserModel();
 
         switch (ActionType.valueOf(userEventDTO.getActionType())) {
             case CREATE:
+                var userModel = userEventDTO.convertToUserModel(new UserModel());
                 userModel.setPaymentStatus(PaymentStatus.NOTSTARTED);
                 this.userService.save(userModel);
                 break;
 
             case UPDATE:
-                this.userService.save(userModel);
+                this.userService.save(
+                        userEventDTO.convertToUserModel(
+                                this.userService.findById(userEventDTO.getUserId()).get()
+                        )
+                );
                 break;
 
             case DELETE:
-                this.userService.delete(userModel.getUserId());
+                this.userService.delete(userEventDTO.getUserId());
                 break;
         }
     }
