@@ -14,6 +14,7 @@ import com.ead.payment.repositories.PaymentRepository;
 import com.ead.payment.repositories.UserRepository;
 import com.ead.payment.services.PaymentService;
 import com.ead.payment.services.PaymentStripeService;
+import jakarta.transaction.Transactional;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
@@ -21,7 +22,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Optional;

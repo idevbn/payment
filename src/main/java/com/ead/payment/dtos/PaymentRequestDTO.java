@@ -1,9 +1,9 @@
 package com.ead.payment.dtos;
 
+import jakarta.validation.constraints.*;
 import lombok.Data;
 import org.hibernate.validator.constraints.br.CPF;
 
-import javax.validation.constraints.*;
 import java.math.BigDecimal;
 
 @Data
