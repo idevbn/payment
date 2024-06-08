@@ -1,15 +1,13 @@
 package com.ead.payment.configs.security;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 @Component
 public class AuthenticationEntryPointImpl implements AuthenticationEntryPoint {
@@ -20,9 +18,8 @@ public class AuthenticationEntryPointImpl implements AuthenticationEntryPoint {
     public void commence(
             final HttpServletRequest httpServletRequest,
             final HttpServletResponse httpServletResponse,
-            final AuthenticationException e) throws IOException, ServletException {
-        log.error("Unauthorized error: {}", e.getMessage());
-        httpServletResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+            final AuthenticationException e) {
+        httpServletResponse.setStatus(HttpStatus.UNAUTHORIZED.value());
     }
 
 }
